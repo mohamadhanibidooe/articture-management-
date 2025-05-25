@@ -54,6 +54,7 @@ def main_menu():
         print("1. Create new office")
         print("2. View offices and projects")
         print("3. Exit")
+        print("4. Edit office name")
         choice = input("Your choice: ")
 
         match choice:
@@ -69,6 +70,9 @@ def main_menu():
             case '3':
                 print("Exiting...")
                 break
+            case '4':
+                edit_office()
+                save_data()
             case _:
                 print("Invalid option.")
 
@@ -79,7 +83,9 @@ def project_menu(office):
         print("2. Add stage to project")
         print("3. Set actual date for stage")
         print("4. View projects")
-        print("5. Back")
+        print("5. Edit project name/description")
+        print("6. Back")
+        
         choice = input("Your choice: ")
 
         match choice:
@@ -133,6 +139,25 @@ def project_menu(office):
                 list_projects(office, show_stages=True)
 
             case '5':
+                if not office.projects:
+                    print("No projects to edit.")
+                    continue
+                list_projects(office)
+                idx = int(input("Project number to edit: ")) - 1
+                if 0 <= idx < len(office.projects):
+                    proj = office.projects[idx]
+                    new_name = input(f"New project name for '{proj.name}' (Enter to keep): ").strip()
+                    new_desc = input(f"New description (Enter to keep): ").strip()
+                    if new_name:
+                        proj.name = new_name
+                    if new_desc:
+                        proj.description = new_desc
+                    print("Project updated.")
+                    save_data()
+                else:
+                    print("Invalid project number.")
+            
+            case '6':
                 break
 
             case _:
@@ -156,6 +181,25 @@ def list_offices():
                 print("Invalid office number.")
     except ValueError:
         print("Invalid input.")
+def edit_office():
+    if not offices:
+        print("No offices found.")
+        return
+    list_offices()
+    try:
+        idx = int(input("Office number to edit: ")) - 1
+        if 0 <= idx < len(offices):
+            new_name = input(f"Enter new name for '{offices[idx].name}' (or leave blank to cancel): ").strip()
+            if new_name:
+                offices[idx].name = new_name
+                print("Office name updated.")
+            else:
+                print("Edit canceled.")
+        else:
+            print("Invalid office number.")
+    except ValueError:
+        print("Invalid input.")
+
 
 def list_projects(office, show_stages=False):
     for i, p in enumerate(office.projects):
