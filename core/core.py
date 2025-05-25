@@ -51,13 +51,21 @@ def main_menu():
 
     while True:
         print("\n--- Main Menu ---")
+        print("0. Exit")
         print("1. Create new office")
         print("2. View offices and projects")
-        print("3. Exit")
-        print("4. Edit office name")
+        print("3. Edit office name")
+        print("4. Delete office")
+
+        
+        
         choice = input("Your choice: ")
 
         match choice:
+            case '0':
+                print("Exiting...")
+                break
+
             case '1':
                 office_name = input("Office name: ")
                 office = Office(office_name)
@@ -67,28 +75,39 @@ def main_menu():
 
             case '2':
                 list_offices()
+            
             case '3':
-                print("Exiting...")
-                break
-            case '4':
                 edit_office()
                 save_data()
+            
+            case '4':
+                delete_office()
+                save_data()
+
+
             case _:
                 print("Invalid option.")
 
 def project_menu(office):
     while True:
         print(f"\n--- Office: {office.name} ---")
+        print("0. Back")
         print("1. Add project")
         print("2. Add stage to project")
         print("3. Set actual date for stage")
         print("4. View projects")
         print("5. Edit project name/description")
-        print("6. Back")
+        print("6. Delete a project")
+        print("7. Delete a stage from a project")
+
+        
         
         choice = input("Your choice: ")
 
         match choice:
+            case '0':
+                break
+
             case '1':
                 name = input("Project name: ")
                 desc = input("Project description (optional): ")
@@ -158,7 +177,48 @@ def project_menu(office):
                     print("Invalid project number.")
             
             case '6':
-                break
+                if not office.projects:
+                   print("No projects to delete.")
+                   continue
+                list_projects(office)
+                idx = int(input("Project number to delete: ")) - 1
+                if 0 <= idx < len(office.projects):
+                    confirm = input(f"Delete project '{office.projects[idx].name}'? (y/n): ")
+                    if confirm.lower() == 'y':
+                        del office.projects[idx]
+                        print("Project deleted.")
+                        save_data()
+                    else:
+                        print("Canceled.")
+                else:
+                    print("Invalid project number.")
+
+            case '7':
+                if not office.projects:
+                    print("No projects available.")
+                    continue
+                list_projects(office)
+                idx = int(input("Project number: ")) - 1
+                if idx < 0 or idx >= len(office.projects):
+                    print("Invalid project number.")
+                    continue
+                project = office.projects[idx]
+                if not project.stages:
+                    print("No stages to delete.")
+                    continue
+                for i, s in enumerate(project.stages):
+                    print(f"{i+1}. {s}")
+                sid = int(input("Stage number to delete: ")) - 1
+                if sid < 0 or sid >= len(project.stages):
+                    print("Invalid stage number.")
+                    continue
+                confirm = input(f"Delete stage '{project.stages[sid].name}'? (y/n): ")
+                if confirm.lower() == 'y':
+                    del project.stages[sid]
+                    print("Stage deleted.")
+                    save_data()
+                else:
+                    print("Canceled.")
 
             case _:
                 print("Invalid option.")
@@ -181,6 +241,7 @@ def list_offices():
                 print("Invalid office number.")
     except ValueError:
         print("Invalid input.")
+
 def edit_office():
     if not offices:
         print("No offices found.")
@@ -199,6 +260,26 @@ def edit_office():
             print("Invalid office number.")
     except ValueError:
         print("Invalid input.")
+
+def delete_office():
+    if not offices:
+        print("No offices found.")
+        return
+    list_offices()
+    try:
+        idx = int(input("Office number to delete: ")) - 1
+        if 0 <= idx < len(offices):
+            confirm = input(f"Are you sure you want to delete '{offices[idx].name}'? (y/n): ")
+            if confirm.lower() == 'y':
+                del offices[idx]
+                print("Office deleted.")
+            else:
+                print("Canceled.")
+        else:
+            print("Invalid office number.")
+    except ValueError:
+        print("Invalid input.")
+
 
 
 def list_projects(office, show_stages=False):
