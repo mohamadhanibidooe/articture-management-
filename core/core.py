@@ -146,6 +146,16 @@ def list_offices():
         print(f"{i+1}. Office: {office.name} | Projects: {len(office.projects)}")
         for j, p in enumerate(office.projects):
             print(f"   {j+1}. {p.name} ({len(p.stages)} stages)")
+    try:
+        choice = input("\nEnter office number to manage (or just press Enter to return): ")
+        if choice.strip():
+            idx = int(choice) - 1
+            if 0 <= idx < len(offices):
+                project_menu(offices[idx])
+            else:
+                print("Invalid office number.")
+    except ValueError:
+        print("Invalid input.")
 
 def list_projects(office, show_stages=False):
     for i, p in enumerate(office.projects):
