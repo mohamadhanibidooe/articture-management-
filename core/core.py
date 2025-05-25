@@ -1,4 +1,8 @@
 from datetime import datetime
+import json
+import os
+
+DATA_FILE = os.path.join(os.path.dirname(__file__), "data.json")
 
 class Stage:
     def __init__(self, name, planned_date, actual_date=None):
@@ -43,6 +47,8 @@ def input_date(prompt):
             print("Date format must be yyyy-mm-dd.")
 
 def main_menu():
+    load_data()
+
     while True:
         print("\n--- Main Menu ---")
         print("1. Create new office")
@@ -56,6 +62,8 @@ def main_menu():
                 office = Office(office_name)
                 offices.append(office)
                 project_menu(office)
+                save_data()
+
             case '2':
                 list_offices()
             case '3':
@@ -79,6 +87,8 @@ def project_menu(office):
                 name = input("Project name: ")
                 desc = input("Project description (optional): ")
                 office.add_project(name, desc)
+                save_data()
+
 
             case '2':
                 if not office.projects:
@@ -92,6 +102,8 @@ def project_menu(office):
                 stage_name = input("Stage name: ")
                 planned_date = input_date("Planned date (yyyy-mm-dd): ")
                 office.projects[idx].add_stage(stage_name, planned_date)
+                save_data()
+
 
             case '3':
                 if not office.projects:
@@ -114,6 +126,8 @@ def project_menu(office):
                     continue
                 actual_date = input_date("Actual date (yyyy-mm-dd): ")
                 project.set_actual_date(sid, actual_date)
+                save_data()
+
 
             case '4':
                 list_projects(office, show_stages=True)
@@ -140,5 +154,49 @@ def list_projects(office, show_stages=False):
             for s in p.stages:
                 print(f"     - {s}")
 
+
+def save_data():
+    data = []
+    for office in offices:
+        data.append({
+            "name": office.name,
+            "projects": [
+                {
+                    "name": p.name,
+                    "description": p.description,
+                    "stages": [
+                        {
+                            "name": s.name,
+                            "planned_date": s.planned_date.strftime("%Y-%m-%d"),
+                            "actual_date": s.actual_date.strftime("%Y-%m-%d") if s.actual_date else None
+                        } for s in p.stages
+                    ]
+                } for p in office.projects
+            ]
+        })
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_data():
+    if not os.path.exists(DATA_FILE):
+        return
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    for office_data in data:
+        office = Office(office_data["name"])
+        for p_data in office_data["projects"]:
+            project = Project(p_data["name"], p_data.get("description", ""))
+            for s_data in p_data["stages"]:
+                stage = Stage(
+                    s_data["name"],
+                    datetime.strptime(s_data["planned_date"], "%Y-%m-%d"),
+                    datetime.strptime(s_data["actual_date"], "%Y-%m-%d") if s_data["actual_date"] else None
+                )
+                project.stages.append(stage)
+            office.projects.append(project)
+        offices.append(office)
+
+
 if __name__ == "__main__":
     main_menu()
+
